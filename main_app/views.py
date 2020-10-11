@@ -1,28 +1,33 @@
-from django.shortcuts import render
+
+from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.contrib.auth.forms import UserCreationForm
+from django.views.generic import ListView, DetailView
 from django.contrib.auth import login
-from .models import Game
-import requests
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+import uuid
+from .models import Game
 
 
 # Create your views here.
 # Add the following import
 from django.http import HttpResponse
-class GameCreate(CreateView):
+class GameCreate(LoginRequiredMixin, CreateView):
   model = Game
   fields = ['title', 'release_date', 'description', 'genre']
+  success_url = '/games/'
+
   def form_valid(self, form):
-  # Assign the logged in user (self.request.user)
-    form.instance.user = self.request.user  # form.instance is the cat
+    # Assign the logged in user
+    form.instance.user = self.request.user
     # Let the CreateView do its job as usual
     return super().form_valid(form)
 
 class GameUpdate(LoginRequiredMixin, UpdateView):
   model = Game
   fields = ['title', 'release_date', 'description', 'genre']
+  success_url = '/games/'
 
 class GameDelete(LoginRequiredMixin, DeleteView):
   model = Game
@@ -58,7 +63,7 @@ def signup(request):
       user = form.save()
       # This is how we log a user in via code
       login(request, user)
-      return redirect('index')
+      return redirect('/')
     else:
       error_message = 'Invalid sign up - try again'
   # A bad POST or a GET request, so render signup.html with an empty form
